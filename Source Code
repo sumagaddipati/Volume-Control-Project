@@ -1,0 +1,69 @@
+import cv2
+import numpy as np
+import mediapipe as mp
+import pyautogui
+
+# Initialize MediaPipe Hand tracking
+mp_hands = mp.solutions.hands
+mp_draw = mp.solutions.drawing_utils
+hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
+
+# Open Webcam
+cap = cv2.VideoCapture(0)
+
+while cap.isOpened():
+    success, frame = cap.read()
+    if not success:
+        break
+
+    frame = cv2.flip(frame, 1)  # Flip the frame horizontally
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    # Process frame with MediaPipe
+    result = hands.process(rgb_frame)
+
+    if result.multi_hand_landmarks:
+        for hand_landmarks in result.multi_hand_landmarks:
+            mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+            # Extract landmarks for thumb and index finger
+            landmarks = hand_landmarks.landmark
+            thumb_tip = landmarks[4]  # Thumb tip
+            index_tip = landmarks[8]  # Index finger tip
+
+            # Convert to pixel coordinates
+            h, w, _ = frame.shape
+            x1, y1 = int(thumb_tip.x * w), int(thumb_tip.y * h)
+            x2, y2 = int(index_tip.x * w), int(index_tip.y * h)
+
+            # Draw a line between thumb and index finger
+            cv2.line(frame, (x1, y1), (x2, y2), (255, 0, 0), 3)  # Blue line with thickness 3
+
+            # Calculate distance between thumb and index finger
+            distance = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+
+            # Map the distance to volume range (0-100)
+            volume = np.interp(distance, [20, 200], [0, 100])
+
+            # Adjust system volume
+            pyautogui.press("volumeup" if volume > 50 else "volumedown")
+
+            # Display Volume Level
+            cv2.putText(frame, f'Volume: {int(volume)}%', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3)
+
+            # 🔹 Add a Volume Bar (Rectangle)
+            vol_bar_x = 50  # X-position of the volume bar
+            vol_bar_y = 400  # Starting Y-position
+            vol_bar_height = int(np.interp(volume, [0, 100], [0, 300]))  # Map volume to bar height
+
+            cv2.rectangle(frame, (vol_bar_x, vol_bar_y - 300), (vol_bar_x + 50, vol_bar_y), (255, 0, 0), 3)  # Outline
+            cv2.rectangle(frame, (vol_bar_x, vol_bar_y - vol_bar_height), (vol_bar_x + 50, vol_bar_y), (255, 0, 0), cv2.FILLED)  # Filled bar
+
+    # Show frame
+    cv2.imshow("Hand Gesture Volume Control", frame)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
