@@ -6,8 +6,11 @@ Control your system volume using simple hand gestures! This project leverages Op
 **Features**
 
 ✅ Real-time hand tracking using MediaPipe
+
 ✅ Adjusts system volume based on thumb-index finger distance
+
 ✅ Works smoothly with webcams
+
 ✅ Uses pycaw for system volume control
 
 **Tech Stack**
@@ -23,7 +26,9 @@ pycaw 🎵
 **Usage**
 
 Bring your thumb and index finger close to lower the volume 🔉
+
 Move them apart to increase the volume 🔊
+
 Press 'q' to exit
 
 **Code Overview**
@@ -33,8 +38,11 @@ The script captures video from the webcam and uses MediaPipe Hands to detect han
 **Key Functions:**
 
 Hand Tracking: Uses MediaPipe to detect hand landmarks in real-time.
+
 Distance Calculation: Computes the Euclidean distance between the thumb and index finger.
+
 Volume Mapping: Maps the distance to the system's volume range and sets the volume accordingly.
+
 Real-Time Adjustment: Continuously updates the volume based on hand gestures.
 
 **Contribute**
